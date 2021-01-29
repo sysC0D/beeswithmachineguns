@@ -207,15 +207,21 @@ def up(count, group, zone, image_id, instance_type, username, key_name, subnet, 
         print('Attempting to call up %i bees.' % count)
 
         try:
+            # allow public IPs on VPC
+            interface = boto.ec2.networkinterface.NetworkInterfaceSpecification(
+                subnet_id=subnet,
+                groups=[groupId],
+                associate_public_ip_address=True)
+            interfaces = boto.ec2.networkinterface.NetworkInterfaceCollection(interface)
+
             reservation = ec2_connection.run_instances(
                 image_id=image_id,
                 min_count=count,
                 max_count=count,
                 key_name=key_name,
-                security_group_ids=[groupId],
                 instance_type=instance_type,
                 placement=placement,
-                subnet_id=subnet)
+                network_interfaces=interfaces)
 
         except boto.exception.EC2ResponseError as e:
             print(("Unable to call bees:", e.message))
@@ -995,6 +1001,7 @@ def _hurl_attack(params):
                 params['instance_name'],
                 username=params['username'],
                 key_filename=pem_path)
+
 
         print('Bee %i is firing her machine gun. Bang bang!' % params['i'])
 
