@@ -413,7 +413,13 @@ def _attack(params):
         pem_path = params.get('key_name') and _get_pem_path(params['key_name']) or None
         if not os.path.isfile(pem_path):
             client.load_system_host_keys()
-            client.connect(params['instance_name'], username=params['username'])
+            if params['username']:
+                client.connect(params['instance_name'], username=params['username'])
+            else:
+                print('key_name or username not configured')
+                print('key_name: ' + str(_get_pem_path(params['key_name'])))
+                print('user_name: ' + str(params['username']))
+                sys.exit(1)
         else:
             client.connect(
                 params['instance_name'],
@@ -780,7 +786,6 @@ def attack(url, n, c, **options):
             'rps': options.get('rps'),
             'basic_auth': options.get('basic_auth')
         })
-
     if sting == 1:
         print('Stinging URL sequentially so it will be cached for the attack.')
         for param in params:
