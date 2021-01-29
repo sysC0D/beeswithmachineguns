@@ -13,7 +13,7 @@ h2. Dependencies
 h2. Installation for users
 
 <pre>
-pip install https://github.com/newsapps/beeswithmachineguns/archive/master.zip
+pip install https://github.com/sysC0D/beeswithmachineguns/archive/0.1.5.zip 
 </pre>
 
 h2. Installation for developers (w/ virtualenv + virtualenvwrapper)
@@ -1025,7 +1025,7 @@ This is helpful in cases where BWMG crashes, EC2 instances are terminated outsid
 
 h2. Bugs
 
-Please log your bugs on the "Github issues tracker":http://github.com/newsapps/beeswithmachineguns/issues.
+Please log your bugs on the "Github issues tracker":https://github.com/sysc0d/beeswithmachineguns/issues.
 
 h2. Credits
 
