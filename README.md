@@ -1,65 +1,54 @@
-h4. Bees with Machine Guns!
+# Bees with Machine Guns!
 
-A utility for arming (creating) many bees (micro EC2 instances) to attack (load test) targets (web applications).
+:warning: The repo forked [bees](https://github.com/newsapps/beeswithmachineguns) seems inactive  
+A utility for arming (creating) many bees (micro EC2 instances) to attack (load test) targets (web applications).  
+Also, retribution for "this shameful act":http://kottke.org/10/10/tiny-catapult-for-throwing-pies-at-bees against a proud hive.  
 
-Also, retribution for "this shameful act":http://kottke.org/10/10/tiny-catapult-for-throwing-pies-at-bees against a proud hive.
+## Dependencies
 
-h2. Dependencies
-
-* Python 2.6 - 3.6
+* Python 2.6+ - 3.6+
 * boto
 * paramiko
 
-h2. Installation for users
+## Installation for users
 
-<pre>
-pip install https://github.com/newsapps/beeswithmachineguns/archive/master.zip
-</pre>
+```python
+pip install https://github.com/sysC0D/beeswithmachineguns/archive/master.zip 
+```
 
-h2. Installation for developers (w/ virtualenv + virtualenvwrapper)
-
-<pre>
-git clone git://github.com/newsapps/beeswithmachineguns.git
+## Installation for developers (w/ virtualenv + virtualenvwrapper)
+```bash
+git clone git://github.com/sysC0D/beeswithmachineguns.git
 cd beeswithmachineguns
 mkvirtualenv --no-site-packages beesenv
 easy_install pip
 pip install -r requirements.txt
-</pre>
+```
 
-h2. Configuring AWS credentials
-
-Bees uses boto to communicate with EC2 and thus supports all the same methods of storing credentials that it does.  These include declaring environment variables, machine-global configuration files, and per-user configuration files. You can read more about these options on "boto's configuration page":http://code.google.com/p/boto/wiki/BotoConfig.
-
+## Configuring AWS credentials
+Bees uses boto to communicate with EC2 and thus supports all the same methods of storing credentials that it does.  These include declaring environment variables, machine-global configuration files, and per-user configuration files. You can read more about these options on "boto's configuration page":http://code.google.com/p/boto/wiki/BotoConfig.  
+The credentials used must have sufficient access to EC2.  
 At minimum, create a .boto file in your home directory with the following contents:
 
-<pre>
+```bash
 [Credentials]
 aws_access_key_id = <your access key>
 aws_secret_access_key = <your secret key>
-</pre>
+```
 
-The credentials used must have sufficient access to EC2.
-
-Make sure the .boto file is only accessible by the current account:
-
-<pre>
-chmod 600 .boto
-</pre>
-
-h2. Usage
-
+## Usage
 A typical bees session looks something like this:
 
-<pre>
+```
 bees up -s 4 -g public -k frakkingtoasters
 bees attack -n 10000 -c 250 -u http://www.ournewwebbyhotness.com/
 bees down
-</pre>
+```
 
 A bees session where this is being called from a python file, while specifying content type and a payload file.
 This is a working example, all of these objects exist in the us-east-1 region.
 
-<pre>
+```python
 import bees
 import json
 
@@ -69,7 +58,7 @@ options = json.loads(sOptions)
 bees.up(1,'bees-sg','us-east-1b','ami-5d155d37','m3.medium','ubuntu','commerce-bees','subnet-b12880e8')
 bees.attack('<URL TO TEST>',2,2,**options)
 bees.down()
-</pre>
+```
 
 In this case the data.json is a simple json file, mind the path.
 
@@ -83,19 +72,19 @@ Lastly, it spins down the 4 servers.  *Please remember to do this*--we aren't re
 
 If you wanted 3 agents requesting url A and one requesting url B, your attack would look as follows (empty url -> use previous):
 
-<pre>
+```
 bees attack -n 10000 -c 250 -u 'http://url.a,,,http://url.b'
-</pre>
+```
 
 For complete options type:
 
-<pre>
+```
 bees -h
-</pre>
+```
 
-h2. Introduction to additions:
+## Introduction to additions:
 
-h4. Additions contributed Hurl integration and multi regional testing.
+### Additions contributed Hurl integration and multi regional testing.
 
 
   *hurl* is an http server load tester similar to ab/siege/weighttp/wrk with support for multithreading, parallelism, ssl, url ranges, and an api-server for querying the running performance statistics.  *hurl* is primarily useful for benchmarking http server applications.
@@ -109,56 +98,56 @@ For more information about *hurl* please visit https://github.com/VerizonDigital
 
 example .bees files in user home directory
 
-<pre>
+```
 $ ls ~/.bees* | xargs -0 basename
 .bees.ap-southeast-1b
 .bees.eu-west-1b
 .bees.us-west-2b
-</pre>
+```
 
 
-h4. Motivation
+### Motivation
 
 Having the ability to generate a lot of HTTPS requests from many different regions around the world allows us to better test our platforms and services. This is also real helpful when there are tools that need to be tested for such things as location of requests.
 
 
-h4. Hurl Usage
+### Hurl Usage
 
 
-h4. bees up
+### bees up
 
   Command line arguments are still the same however to add multiple zones with multiple amis, the values must be comma delimited. The ami and zones must also be in same order for it to work. So for example “-i ami-zone1,ami-zone2,ami-zone3 -z zone1,zone2,zone3”.
 
 
-<pre>
+```
   ./bees up -s 2 -k bees -g bees2 -l ubuntu -i ami-9342c0e0,ami-fd489d
 9e,ami-e8c93e88 -z eu-west-1b,ap-southeast-1b,us-west-2b
-</pre>
+```
 
-h4. bees attack
+### bees attack
 
   In order to use the hurl platform, --hurl or -j must be supplied. Attacks will run concurrently and return a summarized output. The output is summarized per region. More information can be seen if user supplies the -o, --long_output options.
 
-<pre>
+```
 ./bees attack --hurl -u $testurl -S20 -M1000 -H "Accept : text/html"
-</pre>
+```
 
-h4. bees down
+### bees down
 
   Bringing down bees is the same and will bring down all bees for all regions
 
-<pre>
+```
 ./bees down
-</pre>
+```
 
 
 *regions used*: eu-west-1b,ap-southeast-1b,us-west-2b
 
 Some options were added to work with hurl
 
-h4. Examples
+### Examples
 
-<pre>
+```
 $ ./bees --help
 Usage: 
 bees COMMAND [options]
@@ -278,11 +267,11 @@ Options:
     -L, --responses_per
                         hurl only: Display http(s) response codes per interval
                         instead of request statistics
-</pre>
+```
 
 A bringing up bees example
 
-<pre>
+```
 $ ./bees up -s 2 -k bees -g bees2 -l ubuntu -i ami-9342c0e0,ami-fd489d
 9e,ami-e8c93e88 -z eu-west-1b,ap-southeast-1b,us-west-2b
 Connecting to the hive.
@@ -333,12 +322,12 @@ Bee i-2bf8aba5: running @ 52.221.250.224
 Read 2 bees from the roster: us-west-2b
 Bee i-d05a6c08: running @ 54.187.100.142
 Bee i-d15a6c09: running @ 54.201.177.125
-</pre>
+```
 
 
 A bees attack example
 
-<pre>
+```
 $ ./bees attack --hurl -u $testurl -S20 -M1000 -H "Accept : text/html"
 eu-west-1b
 Read 2 bees from the roster: eu-west-1b
@@ -445,11 +434,11 @@ Response Codes:
 
 Mission Assessment: Target crushed bee offensive.
 The swarm is awaiting new orders.
-</pre>
+```
 
 A bees attack example with --long_output
 
-<pre>
+```
 $ ./bees attack --hurl -u $testurl -S20 -M1000 -H "Accept : text/html" --long_output
 eu-west-1b
 Read 2 bees from the roster: eu-west-1b
@@ -983,12 +972,12 @@ Response Codes:
 Mission Assessment: Target crushed bee offensive.
 The swarm is awaiting new orders.
 (trusty)rawm@localhost:~/beeswithmachineguns$
-</pre>
+```
 
 
 An example bees down
 
-<pre>
+```
 $ ./bees down
 Read 2 bees from the roster: eu-west-1b
 Connecting to the hive.
@@ -1002,9 +991,9 @@ Read 2 bees from the roster: us-west-2b
 Connecting to the hive.
 Calling off the swarm for us-west-2b.
 Stood down 2 bees.
-</pre>
+```
 
-h2. The caveat! (PLEASE READ)
+## The caveat! (PLEASE READ)
 
 (The following was cribbed from our "original blog post about the bees":http://blog.apps.chicagotribune.com/2010/07/08/bees-with-machine-guns/.)
 
@@ -1012,7 +1001,7 @@ If you decide to use the Bees, please keep in mind the following important cavea
 
 You have been warned.
 
-h2. Troubleshooting
+## Troubleshooting
 
 h3. EC2 Instances Out Of Sync
 
@@ -1023,11 +1012,11 @@ If you find yourself in a situation where 'bees report' seems to be out of sync 
 This is helpful in cases where BWMG crashes, EC2 instances are terminated outside of the control of BWMG, or other situations where BWMG is out of sync with reality.
 
 
-h2. Bugs
+## Bugs
 
-Please log your bugs on the "Github issues tracker":http://github.com/newsapps/beeswithmachineguns/issues.
+Please log your bugs on the "Github issues tracker":https://github.com/sysc0d/beeswithmachineguns/issues.
 
-h2. Credits
+## Credits
 
 The bees are a creation of the News Applications team at the Chicago Tribune--visit "our blog":http://apps.chicagotribune.com/ and read "our original post about the project":http://blog.apps.chicagotribune.com/2010/07/%2008/bees-with-machine-guns/.
 
@@ -1037,6 +1026,6 @@ Multiple url support from "timsu":https://github.com/timsu/beeswithmachineguns.
 
 Thanks to everyone who reported bugs against the alpha release.
 
-h2. License
+## License
 
 MIT.

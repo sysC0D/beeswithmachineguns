@@ -207,15 +207,21 @@ def up(count, group, zone, image_id, instance_type, username, key_name, subnet, 
         print('Attempting to call up %i bees.' % count)
 
         try:
+            # allow public IPs on VPC
+            interface = boto.ec2.networkinterface.NetworkInterfaceSpecification(
+                subnet_id=subnet,
+                groups=[groupId],
+                associate_public_ip_address=True)
+            interfaces = boto.ec2.networkinterface.NetworkInterfaceCollection(interface)
+
             reservation = ec2_connection.run_instances(
                 image_id=image_id,
                 min_count=count,
                 max_count=count,
                 key_name=key_name,
-                security_group_ids=[groupId],
                 instance_type=instance_type,
                 placement=placement,
-                subnet_id=subnet)
+                network_interfaces=interfaces)
 
         except boto.exception.EC2ResponseError as e:
             print(("Unable to call bees:", e.message))
@@ -413,7 +419,13 @@ def _attack(params):
         pem_path = params.get('key_name') and _get_pem_path(params['key_name']) or None
         if not os.path.isfile(pem_path):
             client.load_system_host_keys()
-            client.connect(params['instance_name'], username=params['username'])
+            if params['username']:
+                client.connect(params['instance_name'], username=params['username'])
+            else:
+                print('key_name or username not configured')
+                print('key_name: ' + str(_get_pem_path(params['key_name'])))
+                print('user_name: ' + str(params['username']))
+                sys.exit(1)
         else:
             client.connect(
                 params['instance_name'],
@@ -444,7 +456,8 @@ def _attack(params):
             pem_file_path=_get_pem_path(params['key_name'])
             scpCommand = "scp -q -o 'StrictHostKeyChecking=no' -i %s %s %s@%s:~/" % (pem_file_path, params['post_file'], params['username'], params['instance_name'])
             os.system(scpCommand)
-            options += ' -p ~/%s' % params['post_file']
+            #Use only filename
+            options += ' -p ~/%s' % os.path.basename(params['post_file'])
 
         if params['keep_alive']:
             options += ' -k'
@@ -466,8 +479,12 @@ def _attack(params):
         # any future statistics parsing that requires more output from ab
         # may need this line altered to include other patterns
         params['output_filter_patterns'] = '\n'.join(['Time per request:', 'Requests per second: ', 'Failed requests: ', 'Connect: ', 'Receive: ', 'Length: ', 'Exceptions: ', 'Complete requests: ', 'HTTP/1.1'])
+
+        print('Verify if ab bench is already installed, if not install it')
+        install_ab_bench = 'sudo apt update && sudo apt install apache2-utils -y > /dev/null 2>&1'
+        client.exec_command(install_ab_bench)
+
         benchmark_command = 'ab -v 3 -r -n %(num_requests)s -c %(concurrent_requests)s %(options)s "%(url)s" 2>/dev/null | grep -F "%(output_filter_patterns)s"' % params
-        print(benchmark_command)
         stdin, stdout, stderr = client.exec_command(benchmark_command)
 
         response = {}
@@ -780,7 +797,6 @@ def attack(url, n, c, **options):
             'rps': options.get('rps'),
             'basic_auth': options.get('basic_auth')
         })
-
     if sting == 1:
         print('Stinging URL sequentially so it will be cached for the attack.')
         for param in params:
@@ -990,6 +1006,7 @@ def _hurl_attack(params):
                 params['instance_name'],
                 username=params['username'],
                 key_filename=pem_path)
+
 
         print('Bee %i is firing her machine gun. Bang bang!' % params['i'])
 
