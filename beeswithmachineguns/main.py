@@ -37,7 +37,6 @@ from optparse import OptionParser, OptionGroup, Values
 import threading
 import time
 import sys
-import pkg_resources
 
 def parse_options():
     """
@@ -56,7 +55,6 @@ commands:
   attack  Begin the attack on a specific url.
   down    Shutdown and deactivate the load testing servers.
   report  Report the status of the load testing servers.
-  version Current version.
     """)
 
     up_group = OptionGroup(parser, "up",
@@ -75,19 +73,19 @@ commands:
                         help="The security group(s) to run the instances under (default: default).")
     up_group.add_option('-z', '--zone',  metavar="ZONE",  nargs=1,
                         action='store', dest='zone', type='string', default='us-east-1d',
-                        help="Availability zones to start the instances in (default: us-east-1d),(multi-regions: us-east-1b,us-east-1d).")
+                        help="The availability zone to start the instances in (default: us-east-1d).")
     up_group.add_option('-i', '--instance',  metavar="INSTANCE",  nargs=1,
                         action='store', dest='instance', type='string', default='ami-ff17fb96',
-                        help="The instance-id to use for each server from (default: ami-ff17fb96),(multi-regions: ami-ff17fb96,ami-ff17fb96).")
+                        help="The instance-id to use for each server from (default: ami-ff17fb96).")
     up_group.add_option('-t', '--type',  metavar="TYPE",  nargs=1,
-                        action='store', dest='type', type='string', default='t2.micro',
-                        help="The instance-type to use for each server (default: t2.micro).")
+                        action='store', dest='type', type='string', default='t1.micro',
+                        help="The instance-type to use for each server (default: t1.micro).")
     up_group.add_option('-l', '--login',  metavar="LOGIN",  nargs=1,
                         action='store', dest='login', type='string', default='newsapps',
                         help="The ssh username name to use to connect to the new servers (default: newsapps).")
     up_group.add_option('-v', '--subnet',  metavar="SUBNET",  nargs=1,
                         action='store', dest='subnet', type='string', default=None,
-                        help="The vpc subnet id in which the instances should be launched. (default: None),(multi-regions: subnet-1XXXXXX,subnet-2XXXXXX)")
+                        help="The vpc subnet id in which the instances should be launched. (default: None).")
     up_group.add_option('-b', '--bid', metavar="BID", nargs=1,
                         action='store', dest='bid', type='float', default=None,
                         help="The maximum bid price per spot instance (default: None).")
@@ -197,43 +195,23 @@ commands:
         if options.group == 'default':
             print('New bees will use the "default" EC2 security group. Please note that port 22 (SSH) is not normally open on this group. You will need to use to the EC2 tools to open it before you will be able to attack.')
         zone_len = options.zone.split(',')
-        instance_len = options.instance.split(',')
-        subnet_len = options.subnet.split(',')
         if len(zone_len) > 1:
-            if len(instance_len) != len(zone_len):
+            if len(options.instance.split(',')) != len(zone_len):
                 print("Your instance count does not match zone count")
                 sys.exit(1)
             else:
-                if len(subnet_len) > 0:
-                    if len(subnet_len) != len(zone_len):
-                        print("Your subnet count does not match zone count")
-                        sys.exit(1)
-                    else:
-                        ami_list = [a for a in instance_len]
-                        subnet_list = [s for s in subnet_len]
-                        zone_list = [z for z in zone_len]
-                        for tup_val in zip(ami_list, zone_list, subnet_list):
-                            options.instance, options.zone, options.subnet = tup_val
-                            threading.Thread(target=bees.up, args=(options.servers, options.group,
-                                                                    options.zone, options.instance,
-                                                                    options.type,options.login,
-                                                                    options.key, options.subnet,
-                                                                    options.tags, options.bid)).start()
-                            #time allowed between threads
-                            time.sleep(delay)
-                else:
-                    ami_list = [a for a in instance_len]
-                    zone_list = [z for z in zone_len]
-                    # for each ami and zone set zone and instance 
-                    for tup_val in zip(ami_list, zone_list):
-                        options.instance, options.zone = tup_val
-                        threading.Thread(target=bees.up, args=(options.servers, options.group,
-                                                                options.zone, options.instance,
-                                                                options.type,options.login,
-                                                                options.key, options.subnet,
-                                                                options.tags, options.bid)).start()
-                        #time allowed between threads
-                        time.sleep(delay)
+                ami_list = [a for a in options.instance.split(',')]
+                zone_list = [z for z in zone_len]
+                # for each ami and zone set zone and instance
+                for tup_val in zip(ami_list, zone_list):
+                    options.instance, options.zone = tup_val
+                    threading.Thread(target=bees.up, args=(options.servers, options.group,
+                                                            options.zone, options.instance,
+                                                            options.type,options.login,
+                                                            options.key, options.subnet,
+                                                            options.tags, options.bid)).start()
+                    #time allowed between threads
+                    time.sleep(delay)
         else:
             bees.up(options.servers, options.group, options.zone, options.instance, options.type, options.login, options.key, options.subnet, options.tags, options.bid)
 
@@ -294,8 +272,6 @@ commands:
         bees.down()
     elif command == 'report':
         bees.report()
-    elif command == 'version':
-        print(pkg_resources.get_distribution('beeswithmachineguns').version)
 
 def main():
     parse_options()

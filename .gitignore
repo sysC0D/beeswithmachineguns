@@ -10,4 +10,3 @@ env
 launch.json
 tasks.json
 data.json
-*.zip
