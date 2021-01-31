@@ -37,6 +37,7 @@ from optparse import OptionParser, OptionGroup, Values
 import threading
 import time
 import sys
+import pkg_resources
 
 def parse_options():
     """
@@ -55,6 +56,7 @@ commands:
   attack  Begin the attack on a specific url.
   down    Shutdown and deactivate the load testing servers.
   report  Report the status of the load testing servers.
+  version Current version.
     """)
 
     up_group = OptionGroup(parser, "up",
@@ -292,6 +294,8 @@ commands:
         bees.down()
     elif command == 'report':
         bees.report()
+    elif command == 'version':
+        print(pkg_resources.get_distribution('beeswithmachineguns').version)
 
 def main():
     parse_options()

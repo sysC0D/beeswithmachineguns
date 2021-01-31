@@ -8,10 +8,11 @@ except ImportError:
 with open('requirements.txt') as f:
     required_packages = f.readlines()
 
+pkg_version='0.1.5'
 setup(name='beeswithmachineguns',
-      version='0.1.5',
+      version=pkg_version,
       description='A utility for arming (creating) many bees (micro EC2 instances) to attack (load test) targets (web applications).',
-      author='sysc0d, fork:Christopher Groskopf',
+      author='Christopher Groskopf, fork: sysc0d',
       url='http://github.com/sysc0d/beeswithmachineguns',
       license='MIT',
       packages=['beeswithmachineguns'],

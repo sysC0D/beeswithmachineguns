@@ -19,7 +19,7 @@ pip install https://github.com/sysC0D/beeswithmachineguns/archive/0.1.5.zip
 h2. Installation for developers (w/ virtualenv + virtualenvwrapper)
 
 <pre>
-git clone git://github.com/newsapps/beeswithmachineguns.git
+git clone git://github.com/sysC0D/beeswithmachineguns.git
 cd beeswithmachineguns
 mkvirtualenv --no-site-packages beesenv
 easy_install pip

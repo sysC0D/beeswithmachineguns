@@ -456,7 +456,8 @@ def _attack(params):
             pem_file_path=_get_pem_path(params['key_name'])
             scpCommand = "scp -q -o 'StrictHostKeyChecking=no' -i %s %s %s@%s:~/" % (pem_file_path, params['post_file'], params['username'], params['instance_name'])
             os.system(scpCommand)
-            options += ' -p ~/%s' % params['post_file']
+            #Use only filename
+            options += ' -p ~/%s' % os.path.basename(params['post_file'])
 
         if params['keep_alive']:
             options += ' -k'
@@ -480,11 +481,10 @@ def _attack(params):
         params['output_filter_patterns'] = '\n'.join(['Time per request:', 'Requests per second: ', 'Failed requests: ', 'Connect: ', 'Receive: ', 'Length: ', 'Exceptions: ', 'Complete requests: ', 'HTTP/1.1'])
 
         print('Verify if ab bench is already installed, if not install it')
-        install_ab_bench = 'sudo apt update; sudo apt install apache2-utils -y'
+        install_ab_bench = 'sudo apt update && sudo apt install apache2-utils -y > /dev/null 2>&1'
         client.exec_command(install_ab_bench)
 
         benchmark_command = 'ab -v 3 -r -n %(num_requests)s -c %(concurrent_requests)s %(options)s "%(url)s" 2>/dev/null | grep -F "%(output_filter_patterns)s"' % params
-        print(benchmark_command)
         stdin, stdout, stderr = client.exec_command(benchmark_command)
 
         response = {}
