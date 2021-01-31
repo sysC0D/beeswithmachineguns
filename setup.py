@@ -8,7 +8,7 @@ except ImportError:
 with open('requirements.txt') as f:
     required_packages = f.readlines()
 
-pkg_version='0.1.5'
+pkg_version='0.1.6'
 setup(name='beeswithmachineguns',
       version=pkg_version,
       description='A utility for arming (creating) many bees (micro EC2 instances) to attack (load test) targets (web applications).',
